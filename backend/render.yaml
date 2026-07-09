@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: orderlyx-backend
+    env: node
+    buildCommand: npm install && npx prisma generate && npx prisma db push
+    startCommand: node src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_URL
+        sync: false
