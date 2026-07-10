@@ -17,8 +17,7 @@ Built with **Node.js + Express + Prisma (PostgreSQL)** on the backend and **Reac
 | **Reports** | Inventory valuation, margin analysis, and category breakdowns |
 | **User Management** | Role-based access: Admin, Manager, Staff, Viewer |
 | **Audit Logs** | Immutable log of every create/update/delete action with actor tracking |
-| **DB Explorer** | Live schema browser and raw SQL runner (Manager+) |
-| **DBMS Proof** | Normalization walkthrough (1NF → BCNF) and sample query lab |
+
 
 ---
 
@@ -60,29 +59,7 @@ orderlyx/
 
 ---
 
-## Bugs fixed in this version
 
-1. **Prisma `N+1` connection pool exhaustion** — Every route file previously created its own `PrismaClient` instance. With many concurrent requests this exhausts the connection pool. Fixed with a module-level singleton in `lib/prisma.js`.
-
-2. **Email enumeration in login** — The original login route returned immediately on a missing user, leaking that the email doesn't exist. Fixed with a dummy hash comparison so timing is consistent for both valid and invalid emails.
-
-3. **Deactivated users could still authenticate** — The `isActive` check was missing from the login flow and the auth middleware. Both now reject deactivated accounts.
-
-4. **Stale role data in frontend** — `AuthContext` loaded user data from `localStorage` on mount without re-validating against the server. If an admin changed a user's role, the client still showed the old role until manual logout. Fixed by calling `/auth/me` on every mount and refreshing from the server response.
-
-5. **Client-side search in Customers** — `load()` fetched all customers then filtered in JavaScript. This breaks on large datasets and doesn't leverage DB indexes. Fixed by passing `search` as a query param and filtering in the DB with Prisma's `contains` mode.
-
-6. **`lowStock` filter applied after pagination** — The `lowStock=true` parameter was filtering results *after* `take: limit` was applied, so you'd get fewer than the requested page size. Fixed by fetching the full unfiltered set when `lowStock=true` and applying the cross-field comparison before responding.
-
-7. **Order number collisions under concurrent requests** — Order numbers were generated as `prefix-year-(count+1)`. Two simultaneous requests would get the same count and produce duplicate order numbers. Fixed with a `Date.now().toString(36)` suffix which is unique per millisecond.
-
-8. **ADJUSTMENT orders subtracted stock** — `ADJUSTMENT` type orders used `-item.quantity` delta (same as `SALE`). Adjustments should use the signed quantity directly (positive = add stock, negative = remove). Fixed with explicit delta logic per order type.
-
-9. **Missing Escape key handler on Modal** — Modals had no keyboard dismiss. Added a `keydown` listener for `Escape` that calls `onClose`.
-
-10. **Global error handler missing `next` parameter** — Express's 4-parameter error handler `(err, req, res, next)` requires all four arguments; without `next`, Express does not recognize it as an error handler. Fixed.
-
----
 
 ## Role permissions
 
@@ -94,7 +71,7 @@ orderlyx/
 | Create orders | ✓ | ✓ | ✓ | — |
 | Manage customers | ✓ | ✓ | — | — |
 | User management & audit logs | ✓ | — | — | — |
-| DB Explorer | ✓ | ✓ | — | — |
+
 
 ---
 
